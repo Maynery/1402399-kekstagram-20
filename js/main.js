@@ -1,105 +1,133 @@
-'use strict';
+var similarListElement = document.querySelector('.pictures');
+var similarPhotoTemplate = document.querySelector('#picture').content.querySelector('.picture');
 
-var NUMBER_OF_POSTS = 25;
-var MIN_LIKES_VALUE = 15;
-var MAX_LIKES_VALUE = 200;
-var MIN_AVATAR_NUMBER = 1;
-var MAX_AVATAR_NUMBER = 6;
-var MIN_COMMENTS_NUMBER = 1;
-var MAX_COMMENTS_NUMBER = 10;
-var pictures = [];
+var fragment = document.createDocumentFragment();
 
-var picturesDescriptions = [
-  'Моё любимое фото',
-  'Отличное фото, что скажете?',
-  'Неплохо, правда?',
-  'Снимал на Nokia 3310. Он не только гвозди забивать может!',
-  'Было скучно...А что вы делаете когда вам скучно?',
-  'Британские учёные раскрыли что...читать далее',
-  'Лайк, подписка, всё по списку...и я дальше буду радовать вас новыми фото каждую минуту)',
-  'Это описание сделано генератором случайных генераторов случайных генераторов...'
-];
+var COMMENTS_NAMES = ['Рудольф', 'Илья', 'Тимофей', 'Игорь', 'Кекс', 'Гоша', 'Петя'];
+var COMMENTS_MESSAGES = ['Всё отлично!', 'В целом всё неплохо. Но не всё.', 'Когда вы делаете фотографию, хорошо бы убирать палец из кадра. В конце концов это просто непрофессионально.', 'Моя бабушка случайно чихнула с фотоаппаратом в руках и у неё получилась фотография лучше.', 'Я поскользнулся на банановой кожуре и уронил фотоаппарат на кота и у меня получилась фотография лучше.', 'Лица у людей на фотке перекошены, как будто их избивают. Как можно было поймать такой неудачный момент?!'];
+var PHOTOS_QUANTITY = 25;
+var MAX_COMMENTS = 99;
+var MINIMUM_COMMENTS_QUANTITY = 0;
 
-var messages = [
-  'В целом всё неплохо. Но не всё.',
-  'Когда вы делаете фотографию, хорошо бы убирать палец из кадра. В конце концов это просто непрофессионально.',
-  'Моя бабушка случайно чихнула с фотоаппаратом в руках и у неё получилась фотография лучше.',
-  'Я поскользнулся на банановой кожуре и уронил фотоаппарат на кота и у меня получилась фотография лучше.',
-  'Лица у людей на фотке перекошены, как будто их избивают. Как можно было поймать такой неудачный момент?!'
-];
+var MINIMUM_AVATAR_INDEX = 1;
+var MAXIMUM_AVATAR_INDEX = 6;
 
-var names = [
-  'Инна',
-  'Альбина',
-  'Евгения',
-  'Иван',
-  'Александр',
-  'Настя',
-  'Андрей',
-  'Ирина'
-];
+var MINIMUM_LIKES_INDEX = 15;
+var MAXIMUM_LIKES_INDEX = 200;
 
-var picturesContainer = document.querySelector('.pictures');
+var getRandomNumberInRange = function (min, max) {
 
-var getRandomNumber = function (min, max) {
-  min = Math.ceil(min);
-  max = Math.floor(max);
   return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
-var getRandomValue = function (arr) {
-  return arr[getRandomNumber(0, arr.length - 1)];
+var getRandomElement = function (array) {
+  var randomIndex = Math.floor(Math.random() * array.length);
+
+  return array[randomIndex];
 };
 
-var buildBasicData = function (index) {
-  pictures[index] = {};
-  pictures[index].url = 'photos/' + (index + 1) + '.jpg';
-  pictures[index].description = getRandomValue(picturesDescriptions);
-  pictures[index].likes = getRandomNumber(MIN_LIKES_VALUE, MAX_LIKES_VALUE);
+var generateComment = function () {
+  var comment = {
+    avatar: 'img/avatar-' + getRandomNumberInRange(MINIMUM_AVATAR_INDEX, MAXIMUM_AVATAR_INDEX) + '.svg',
+    message: getRandomElement(COMMENTS_MESSAGES),
+    name: getRandomElement(COMMENTS_NAMES)
+  };
+
+  return comment;
 };
 
-var buildCommentsData = function (index) {
-  pictures[index].comments = [];
+var generateComments = function () {
+  var randomCommentQuantity = getRandomNumberInRange(MINIMUM_COMMENTS_QUANTITY, MAX_COMMENTS);
+  var comments = [];
 
-  for (var j = 0; j < getRandomNumber(MIN_COMMENTS_NUMBER, MAX_COMMENTS_NUMBER); j++) {
-    pictures[index].comments[j] = {};
-    pictures[index].comments[j].avatar = 'img/avatar-' + getRandomNumber(MIN_AVATAR_NUMBER, MAX_AVATAR_NUMBER) + '.svg';
-    pictures[index].comments[j].message = getRandomValue(messages);
-    pictures[index].comments[j].name = getRandomValue(names);
-  }
-};
-
-var getPicturesData = function () {
-  for (var i = 0; i < NUMBER_OF_POSTS; i++) {
-    buildBasicData(i);
-    buildCommentsData(i);
+  for (var i = MINIMUM_COMMENTS_QUANTITY; i < randomCommentQuantity; i++) {
+    comments.push(generateComment());
   }
 
-  return pictures;
+  return comments;
 };
 
-var buildUserPost = function (pictureData) {
-  var template = document.querySelector('#picture').content.querySelector('.picture');
-  var newPost = template.cloneNode(true);
-  var newPostImg = newPost.querySelector('.picture__img');
-  var newPostLikes = newPost.querySelector('.picture__likes');
-  var newPostComments = newPost.querySelector('.picture__comments');
+var createPhoto = function (index) {
+  var photo = {
+    url: 'photos/' + index + '.jpg',
+    description: 'Описание',
+    likes: getRandomNumberInRange(MINIMUM_LIKES_INDEX, MAXIMUM_LIKES_INDEX),
+    comments: generateComments()
+  };
 
-  newPostImg.src = pictureData.url;
-  newPostLikes.textContent = pictureData.likes;
-  newPostComments.textContent = pictureData.comments.length;
-
-  return newPost;
+  return photo;
 };
 
-var renderUserPosts = function (picturesData) {
+var createPhotos = function () {
+  var photos = [];
+
+  for (var i = 0; i < PHOTOS_QUANTITY; i++) {
+    photos.push(createPhoto(i + 1));
+  }
+
+  return photos;
+};
+
+var newPhotos = createPhotos();
+
+var renderPhoto = function (photo) {
+  var photoElement = similarPhotoTemplate.cloneNode(true);
+
+  photoElement.querySelector('.picture__likes').textContent = photo.likes;
+  photoElement.querySelector('img').src = photo.url;
+  photoElement.querySelector('img').alt = photo.description;
+  photoElement.querySelector('.picture__comments').textContent = photo.comments.length;
+
+  fragment.appendChild(photoElement);
+};
+
+for (var i = 0; i < newPhotos.length; i++) {
+  renderPhoto(newPhotos[i]);
+}
+
+similarListElement.appendChild(fragment);
+
+
+var bigPicture = document.querySelectorAll('.big-picture');
+
+var firstItem = contentItems[0];
+
+
+var replaceElementContent = function (element, newContent) {
+  while (element.firstChild) {
+    element.lastChild.remove();
+  }
+  element.appendChild(newContent);
+};
+
+var getCommentsTemplate = function (picture, template) {
   var fragment = document.createDocumentFragment();
 
-  for (var i = 0; i < picturesData.length; i++) {
-    fragment.appendChild(buildUserPost(picturesData[i]));
+  for (var i = 0; i < picture.comments.length; i++) {
+    var commentsItem = template.cloneNode(true);
+    commentsItem.querySelector('.social__picture').src = picture.comments[i].avatar;
+    commentsItem.querySelector('.social__picture').alt = picture.comments[i].name;
+    commentsItem.querySelector('.social__text').textContent = picture.comments[i].message;
+    fragment.appendChild(commentsItem);
   }
-
-  picturesContainer.appendChild(fragment);
+  return fragment;
 };
 
-renderUserPosts(getPicturesData());
+var renderSelectedItem = function (picture) {
+  var commentsTemplate = document.querySelector('.social__comment');
+  var socialCommentsList = document.querySelector('.social__comments');
+
+  bigPicture.querySelector('.big-picture__img').querySelector('img').src = picture.url;
+  bigPicture.querySelector('.likes-count').textContent = picture.likes;
+  bigPicture.querySelector('.comments-count').textContent = picture.comments.length;
+  bigPicture.querySelector('.social__caption').textContent = picture.description;
+
+  var comments = getCommentsTemplate(picture, commentsTemplate);
+
+  replaceElementContent(socialCommentsList, comments);
+};
+
+document.querySelector('.social__comment-count').classList.add('hidden');
+document.querySelector('.comments-loader').classList.add('hidden');
+
+renderSelectedItem(firstItem);
